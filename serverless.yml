@@ -39,9 +39,9 @@ functions:
     #type: ???
     handler: src/backend/requestUnicorn.handler
     environment:
-      USER_POOL_ID: !ImportValue niod-${self:service}-UserPoolId
+      USER_POOL_ID: !Ref CognitoUserPool
       #USER_POOL_ID: !Ref CognitoUserPool
-      USER_POOL_CLIENT_ID: !ImportValue niod-${self:service}-ClientId
+      USER_POOL_CLIENT_ID: !Ref CognitoUserPoolClient
       #USER_POOL_CLIENT_ID: !Ref CognitoUserPoolClient
 
     events:
@@ -117,17 +117,17 @@ resources:
           WriteCapacityUnits: 1
 # Print out the Id of the User Pool that is created
 # documentation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html
-  Outputs:
-    UserPoolId:
-      Value:
-        Ref: CognitoUserPool
-      Export:
-        Name: niod-${self:service}-UserPoolId
-    UserPoolClientId:
-      Value:
-        Ref: CognitoUserPoolClient
-      Export:
-        Name: niod-${self:service}-ClientId
+  #Outputs:
+  #  UserPoolId:
+  #    Value:
+  #      Ref: CognitoUserPool
+  #    Export:
+  #      Name: niod-${self:service}-UserPoolId
+  #  UserPoolClientId:
+  #    Value:
+  #      Ref: CognitoUserPoolClient
+  #    Export:
+  #      Name: niod-${self:service}-ClientId
 #outputs:
 #  topic: # test variable to verify export of cognito pool id and client ID, to be removed
 #    name: output-${self:service}
