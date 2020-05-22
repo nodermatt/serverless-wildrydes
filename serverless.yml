@@ -1,0 +1,96 @@
+service: wildrydes-serverless
+# app and org for use with dashboard.serverless.com
+# suggestion to remove the app value from https://github.com/serverless/serverless/issues/6684
+app: niod-wildrydes
+org: nicolasodermatt
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: eu-central-1
+  stage: dev
+  environment:
+    DYNAMODB_TABLE: Rydes
+    
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:Scan
+        - dynamodb:UpdateItem
+        - dynamodb:PutItem
+      Resource: "arn:aws:dynamodb:*:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+functions:
+  hello:
+    handler: handler.hello
+  teapot:
+    handler: src/backend/teapot.hello
+    events:
+      - http:
+          path: /teapot  
+          method: get    
+          cors: true # adds an OPTIONS method with Origin: * to the Endpoint
+          # see more: https://github.com/serverless/serverless/issues/6684
+          integration: lambda # suggested fix for error in AWS API testing "Lambda execution failed with status 200 due to customer function error: Cannot read property 'X-Amzn-Trace-Id' of null"      
+  RequestUnicorn:
+    handler: src/backend/requestUnicorn.handler
+    events:
+     - http:
+          path: /rides  
+          method: post    
+          cors: true # adds an OPTIONS method with Origin: * to the Endpoint
+          integration: lambda # default: lambda-proxy. exposes claims at event.requestContext.authorizer.claims
+          
+plugins:
+  - serverless-finch
+
+custom:
+  client:
+    bucketName: niod-wildrydes
+    distributionFolder: src/frontend
+    errorDocument: index.html
+  
+resources:
+  Resources:
+    # the user pool
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        # Generate a name based on the stage
+        UserPoolName: niod-${self:service}-user-pool
+        # Set email as an alias
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+    # the client for the frontend app
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        # Generate an app client name based on the stage
+        ClientName: niod-${self:service}-user-pool-client
+        UserPoolId:
+          Ref: CognitoUserPool
+        ExplicitAuthFlows:
+          - ADMIN_NO_SRP_AUTH
+        GenerateSecret: false
+    # a specific resource
+    RidesTable:
+      # of type dynamodb table 
+      Type: AWS::DynamoDB::Table
+      Properties:
+        # refer to environmental variable for name provider.environment....
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        # columns
+        AttributeDefinitions:
+          - AttributeName: RideId
+            # type string
+            AttributeType: S
+        # primary key
+        KeySchema:
+          - AttributeName: RideId
+            KeyType: HASH
+        # capacity of the table for cost management, tune according to requirements
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
