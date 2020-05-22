@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports.hello = async event => {
-  //const { USER_POOL_ID, USER_POOL_CLIENT_ID } = process.env;
+  const { USER_POOL_ID, USER_POOL_CLIENT_ID } = process.env;
   //console.log(USER_POOL_CLIENT_ID + "" + USER_POOL_ID);
   return {
     statusCode: 200,
@@ -14,8 +14,8 @@ module.exports.hello = async event => {
     },
     body: JSON.stringify(
       {
-        //message: 'Go Serverless v1.0! Your function executed successfully!, Pool:' + USER_POOL_ID + ", Client:" + USER_POOL_CLIENT_ID ,
-        message: 'Go Serverless v1.0! Your function executed successfully!,' ,
+        message: 'Go Serverless v1.0! Your function executed successfully!, Pool:' + USER_POOL_ID + ", Client:" + USER_POOL_CLIENT_ID ,
+        //message: 'Go Serverless v1.0! Your function executed successfully!,' ,
         input: event,
       },
       null,
