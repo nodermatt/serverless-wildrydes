@@ -33,13 +33,34 @@ functions:
           # see more: https://github.com/serverless/serverless/issues/6684
           integration: lambda # suggested fix for error in AWS API testing "Lambda execution failed with status 200 due to customer function error: Cannot read property 'X-Amzn-Trace-Id' of null"      
   RequestUnicorn:
+    #auth
+    #name: niod-${self:service}-user-pool
+    #source: Authorization
+    #type: ???
     handler: src/backend/requestUnicorn.handler
+    environment:
+      USER_POOL_ID: !ImportValue niod-${self:service}-UserPoolId
+      #USER_POOL_ID: !Ref CognitoUserPool
+      USER_POOL_CLIENT_ID: !ImportValue niod-${self:service}-ClientId
+      #USER_POOL_CLIENT_ID: !Ref CognitoUserPoolClient
+
     events:
      - http:
           path: /rides  
           method: post    
           cors: true # adds an OPTIONS method with Origin: * to the Endpoint
           integration: lambda # default: lambda-proxy. exposes claims at event.requestContext.authorizer.claims
+          authorizer:
+          name: wildrydez
+          arn: aws:cognito-idp:eu-central-1:183224933160:userpool/eu-central-1_Bwox7k8gI
+            #arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
+            
+            #arn: "aws:cognito-idp:*:*:userpool/${self:environment.USER_POOL_ID}"
+            #arn: Fn::ImportValue 'niod-${self:service}-UserPoolId'
+            # optional, define which claims are available at events.cognitoPoolClaims.
+            # claims:
+              #- name
+              #- email
           
 plugins:
   - serverless-finch
@@ -94,3 +115,19 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+# Print out the Id of the User Pool that is created
+# documentation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html
+  Outputs:
+    UserPoolId:
+      Value:
+        Ref: CognitoUserPool
+      Export:
+        Name: niod-${self:service}-UserPoolId
+    UserPoolClientId:
+      Value:
+        Ref: CognitoUserPoolClient
+      Export:
+        Name: niod-${self:service}-ClientId
+#outputs:
+#  topic: # test variable to verify export of cognito pool id and client ID, to be removed
+#    name: output-${self:service}
