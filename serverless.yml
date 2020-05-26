@@ -1,14 +1,15 @@
-service: wildrydes-serverless
+service: YOUR_SERVICE
 # app and org for use with dashboard.serverless.com
 # suggestion to remove the app value from https://github.com/serverless/serverless/issues/6684
-app: niod-wildrydes
-org: nicolasodermatt
+app: YOUR_APPNAME
+org: YOUR_ORG
 
 provider:
   name: aws
   runtime: nodejs12.x
-  region: eu-central-1
+  region: YOUR_REGION
   stage: dev
+  prefix: YOUR_PREFIX
   environment:
     DYNAMODB_TABLE: Rydes
     DOMAIN_SUFFIX: tld
@@ -69,7 +70,7 @@ plugins:
 
 custom:
   client:
-    bucketName: niod-wildrydes
+    bucketName: ${prefix}-wildrydes
     distributionFolder: src/frontend
     errorDocument: index.html
   
@@ -80,7 +81,7 @@ resources:
       Type: AWS::Cognito::UserPool
       Properties:
         # Generate a name based on the stage
-        UserPoolName: niod-${self:service}-user-pool
+        UserPoolName: ${prefix}-${self:service}-user-pool
         # Set email as an alias
         UsernameAttributes:
           - email
@@ -91,7 +92,7 @@ resources:
       Type: AWS::Cognito::UserPoolClient
       Properties:
         # Generate an app client name based on the stage
-        ClientName: niod-${self:service}-user-pool-client
+        ClientName: ${prefix}-${self:service}-user-pool-client
         UserPoolId:
           Ref: cognitoUserPool
         ExplicitAuthFlows:
