@@ -1,6 +1,4 @@
 service: YOUR_SERVICE
-# app and org for use with dashboard.serverless.com
-# suggestion to remove the app value from https://github.com/serverless/serverless/issues/6684
 app: YOUR_APPNAME
 org: YOUR_ORG
 
@@ -23,8 +21,6 @@ provider:
       Resource: "arn:aws:dynamodb:*:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 functions:
- # hello:
- #   handler: handler.hello
   teapot:
     handler: src/backend/teapot.hello
     environment:
@@ -35,16 +31,11 @@ functions:
           path: /teapot  
           method: get    
           cors: true # adds an OPTIONS method with Origin: * to the Endpoint
-          # see more: https://github.com/serverless/serverless/issues/6684
           integration: lambda # suggested fix for error in AWS API testing "Lambda execution failed with status 200 due to customer function error: Cannot read property 'X-Amzn-Trace-Id' of null"      
   RequestUnicorn:
     handler: src/backend/requestUnicorn.handler
     environment:
-      #USER_POOL_ID: eu-central-1_Bwox7k8gI
-      #USER_POOL_ID: !Ref cognitoUserPool
       USER_POOL_ID: !Ref cognitoUserPool
-      #USER_POOL_CLIENT_ID: 4v87asgakl8vmiujjrtje4n6mu
-      #USER_POOL_CLIENT_ID: !Ref cognitoUserPoolClient
       USER_POOL_CLIENT_ID: !Ref cognitoUserPoolClient
 
     events:
@@ -53,18 +44,7 @@ functions:
           method: post    
           cors: true # adds an OPTIONS method with Origin: * to the Endpoint
           integration: lambda # default: lambda-proxy. exposes claims at event.requestContext.authorizer.claims
-     #      authorizer:
-   #         name: wildrydez
-   #         arn: arn:aws:cognito-idp:eu-central-1:183224933160:userpool/eu-central-1_HkrGy1GOi
-            #arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
-            
-            #arn: "aws:cognito-idp:*:*:userpool/${self:environment.USER_POOL_ID}"
-            #arn: Fn::ImportValue 'niod-${self:service}-UserPoolId'
-            # optional, define which claims are available at events.cognitoPoolClaims.
-            # claims:
-              #- name
-              #- email
-          
+
 plugins:
   - serverless-finch
 
