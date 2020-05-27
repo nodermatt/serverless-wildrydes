@@ -45,6 +45,10 @@ functions:
           method: post    
           cors: true # adds an OPTIONS method with Origin: * to the Endpoint
           integration: lambda # default: lambda-proxy. exposes claims at event.requestContext.authorizer.claims
+          authorizer: 
+            type: COGNITO_USER_POOLS
+            authorizerId: 
+              Ref: ApiGatewayAuthorizer
 
 plugins:
   - serverless-finch
@@ -79,6 +83,20 @@ resources:
         ExplicitAuthFlows:
           - ADMIN_NO_SRP_AUTH
         GenerateSecret: false
+    ApiGatewayAuthorizer: 
+      Type: AWS::ApiGateway::Authorizer
+      Properties: 
+        Name: CognitoUserPool
+        Type: COGNITO_USER_POOLS # required
+        IdentitySource: method.request.header.Authorization
+        RestApiId: # required
+          Ref: ApiGatewayRestApi # defined by serverless
+        ProviderARNs: 
+          # alternate way to access attribute of type
+          # otherwise, use environment variable
+          - Fn::GetAtt:
+            - cognitoUserPool
+            - Arn
     # a specific resource
     RidesTable:
       # of type dynamodb table 
