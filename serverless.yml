@@ -7,8 +7,8 @@ provider:
   runtime: nodejs12.x
   region: YOUR_REGION
   stage: dev
-  prefix: YOUR_PREFIX
   environment:
+    prefix: niod
     DYNAMODB_TABLE: Rydes
     DOMAIN_SUFFIX: tld
     
@@ -32,6 +32,7 @@ functions:
           method: get    
           cors: true # adds an OPTIONS method with Origin: * to the Endpoint
           integration: lambda # suggested fix for error in AWS API testing "Lambda execution failed with status 200 due to customer function error: Cannot read property 'X-Amzn-Trace-Id' of null"      
+
   RequestUnicorn:
     handler: src/backend/requestUnicorn.handler
     environment:
@@ -50,7 +51,7 @@ plugins:
 
 custom:
   client:
-    bucketName: ${prefix}-wildrydes
+    bucketName: ${self:provider.environment.prefix}-wildrydes
     distributionFolder: src/frontend
     errorDocument: index.html
   
@@ -61,7 +62,7 @@ resources:
       Type: AWS::Cognito::UserPool
       Properties:
         # Generate a name based on the stage
-        UserPoolName: ${prefix}-${self:service}-user-pool
+        UserPoolName: ${self:provider.environment.prefix}-${self:service}-user-pool
         # Set email as an alias
         UsernameAttributes:
           - email
@@ -72,7 +73,7 @@ resources:
       Type: AWS::Cognito::UserPoolClient
       Properties:
         # Generate an app client name based on the stage
-        ClientName: ${prefix}-${self:service}-user-pool-client
+        ClientName: ${self:provider.environment.prefix}-${self:service}-user-pool-client
         UserPoolId:
           Ref: cognitoUserPool
         ExplicitAuthFlows:
